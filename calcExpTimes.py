@@ -44,6 +44,9 @@ class calcexpclass(txttableclass):
         self.lc_maxmag = 31.0
          
     def norm2d(self,target_d_Mpc):
+        print(self.lc.filename)
+        # Search in self.lc.filename for \d+Mpc. If yes, then use that as input distance, 
+        # if not, assume the light curves are in absolute mags.
         raise RuntimeError("NOT YET IMPLEMETED!!!")
 
     def norm2mag(self,norm2mag):
@@ -90,6 +93,7 @@ class calcexpclass(txttableclass):
         self.lc.setpattern4undefined('^nan$')    
         if self.lc.loadfile(lcname):
             raise RuntimeError("Could not load %s" % lcname)
+        self.lc.filename = lcname
         self.lc.configcols(self.phasecol,'f','%.2f')
         self.lcfilters = []
         for col in self.lc.cols:
@@ -370,7 +374,6 @@ class calcexpclass(txttableclass):
 
         self.outbasename = s
         print('outbasename: %s' % self.outbasename)
-        sys.exit(0)
         return(0)
         
 if __name__ == '__main__':
@@ -446,7 +449,7 @@ if __name__ == '__main__':
     if args.norm2mag is not None: 
         calcExp.norm2mag(args.norm2mag)
     if args.norm2d is not None: 
-        calcExp.norm2mag(args.norm2d)
+        calcExp.norm2d(args.norm2d)
         
     calcExp.apply_magoffset()
 
