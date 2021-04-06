@@ -38,16 +38,20 @@ class calcexpclass(txttableclass):
         self.reftime = None
         self.reffilter = None
         self.refmag = None
+        self.ref_d_Mpc = None
+        
         self.dt_KN = None
         self.dt_trigger = None
 
         self.lc_maxmag = 31.0
          
     def norm2d(self,target_d_Mpc):
-        print(self.lc.filename)
-        # Search in self.lc.filename for \d+Mpc. If yes, then use that as input distance, 
-        # if not, assume the light curves are in absolute mags.
-        raise RuntimeError("NOT YET IMPLEMETED!!!")
+
+        self.ref_d_Mpc = target_d_Mpc
+        
+        self.lc.magoffset = +5.0*math.log10(target_d_Mpc*1E6)-5
+        print('mag offset to %.0f Mpc: %.2f' % (target_d_Mpc,self.lc.magoffset))
+        return(0)
 
     def norm2mag(self,norm2mag):
         (reftime,reffilter,refmag) = norm2mag
@@ -367,7 +371,12 @@ class calcexpclass(txttableclass):
         s += '/%s' % outbasename
 
         if not skip_refinfo:
-            s+='_t%.2f_%s_%.2f' % (self.reftime,self.reffilter,self.refmag)
+            if self.reftime is not None:
+                s+='_t%.2f_%s_%.2f' % (self.reftime,self.reffilter,self.refmag)
+            elif self.ref_d_Mpc is not None:
+                s+='_%.0fMpc' % (self.ref_d_Mpc)
+            else:
+                RuntimeError('Cannot add ref info into the outbasename!')
 
         if addsuffix is not None:
             s += '.%s' % addsuffix
@@ -382,7 +391,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     
-    parser.add_argument("--norm2d",nargs=1, help=("target distance in Mpc: if \d+Mpc is in the filename, then it is used as input distance, otherwise it is assumed that it is in absolute mags."))
+    parser.add_argument("--norm2d", type=float, help=("target distance in Mpc: if \d+Mpc is in the filename, then it is used as input distance, otherwise it is assumed that it is in absolute mags."))
     parser.add_argument("--norm2mag",nargs=3, help=("phase filter mag: normalizes lightcurves so that it has mag in filter at phase."))
                                                   #time difference between KN and to GW discovery in days, reference filter, reference mag"
     #parser.add_argument("reftime", type=float, help=("time difference between KN and to GW discovery in days"))
@@ -409,7 +418,8 @@ if __name__ == '__main__':
                          action="store_true", default=False)
 
     #parser.add_argument('--lc', default='./GW170817_40Mpc.txt',
-    parser.add_argument('--lc', default='./kilonova_phottable_gw170817_40Mpc.txt',
+#    parser.add_argument('--lc', default='./kilonova_phottable_gw170817_40Mpc.txt',
+    parser.add_argument('--lc', default='./models/KasenModels_AbsMag/gw170817_boosted.txt',
                         help='lightcurve filename (default=%(default)s)')
     parser.add_argument('--imaging_IRspec_exptime', default='./exp_times_imaging_IRgrism.txt',
                         help='exposure time table for imaging and NIR Grism spectroscopy (default=%(default)s)')
